@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "593170725368",
+    "project_id": "meetx-415610",
+    "storage_bucket": "meetx-415610.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593170725368:android:60a831d0ea2742540c7e0d",
+        "android_client_info": {
+          "package_name": "com.meetx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYKiyCbHR0l0p5xbH093nhIW1Mb09TXdg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
