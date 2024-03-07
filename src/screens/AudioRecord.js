@@ -25,8 +25,10 @@ import AudioRecorderPlayer, {
 } from 'react-native-audio-recorder-player';
 
 import LiveAudioStream from 'react-native-live-audio-stream';
+import AudioRecord1 from 'react-native-audio-record';
+import {FileSystem, Dirs, ExternalDir} from 'react-native-file-access';
 
-const ENDPOINT = 'https://3de6c41df9260766c52d2b0225313dd4.serveo.net';
+const ENDPOINT = 'https://15dc8e27ac767cecc064a65fe5ec9e7d.serveo.net';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../components/CustomButton';
@@ -152,9 +154,9 @@ const AudioRecord = ({navigation}) => {
     getPermissions();
   }, []);
 
-  useEffect(() => {
-    socket.emit('start-live', true);
-  }, []);
+  // useEffect(() => {
+  //   socket.emit('start-live', true);
+  // }, []);
 
   const startRecording = async () => {
     // const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -192,15 +194,27 @@ const AudioRecord = ({navigation}) => {
     // } catch (err) {
     //   console.error('Failed to start recording', err);
     // }
+
+    // ----------------
+    // const options = {
+    //   sampleRate: 32000, // default is 44100 but 32000 is adequate for accurate voice recognition
+    //   channels: 1, // 1 or 2, default 1
+    //   bitsPerSample: 16, // 8 or 16, default 16
+    //   audioSource: 6, // android only (see below)
+    //   bufferSize: 4096, // default is 2048
+    // };
+
+    // LiveAudioStream.init(options);
+
     const options = {
-      sampleRate: 32000, // default is 44100 but 32000 is adequate for accurate voice recognition
+      sampleRate: 16000, // default 44100
       channels: 1, // 1 or 2, default 1
       bitsPerSample: 16, // 8 or 16, default 16
       audioSource: 6, // android only (see below)
-      bufferSize: 4096, // default is 2048
+      wavFile: 'test.wav', // default 'audio.wav'
     };
 
-    LiveAudioStream.init(options);
+    AudioRecord1.init(options);
 
     // const socket1 = new WebSocket(
     //   'wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=805b5bb5a16547909b5f1ee127e9fa4a',
@@ -222,17 +236,25 @@ const AudioRecord = ({navigation}) => {
     //   console.log('mes: ', msg);
     // });
 
-    LiveAudioStream.on('data', data => {
-      // base64-encoded audio data chunks
-      var chunk = Buffer.from(data, 'base64');
-      console.log('dataaudio: ', chunk);
-      // socket1.send(JSON.stringify({audio_data: data}));
+    // LiveAudioStream.on('data', data => {
+    //   // base64-encoded audio data chunks
+    //   var chunk = Buffer.from(data, 'base64');
+    //   console.log('dataaudio: ', chunk);
+    //   // socket1.send(JSON.stringify({audio_data: data}));
 
-      socket.emit('live-audio', data);
+    //   socket.emit('live-audio', data);
+    // });
+
+    // LiveAudioStream.start();
+
+    AudioRecord1.start();
+
+    AudioRecord1.on('data', data => {
+      // base64-encoded audio data chunks
+      console.log('data: ', data);
     });
 
-    LiveAudioStream.start();
-    setRecording(LiveAudioStream);
+    setRecording(AudioRecord1);
     setIsRecording(true);
     setDuration(0);
   };
@@ -283,8 +305,26 @@ const AudioRecord = ({navigation}) => {
     // });
     // console.log('audioBytes: ', audioBytes);
     // socket.emit('audio', audioBytes);
-    socket.emit('disconnect-live', true);
-    LiveAudioStream.stop();
+    // socket.emit('disconnect-live', true);
+    // LiveAudioStream.stop();
+
+    const audioFile = await AudioRecord1.stop();
+    console.log('audioFile: ', audioFile, Dirs.CacheDir);
+
+    const audioFilePath = await FileSystem.readFile(
+      Dirs.CacheDir + '/test.wav',
+    );
+
+    console.log('audioFilePath: ', audioFilePath, Dirs);
+
+    try {
+      const fileContent = await FileSystem.readFile(audioFilePath, 'utf8');
+      console.log('Audio file content:', fileContent);
+      // Process the file content as needed
+    } catch (error) {
+      console.error('Error reading audio file:', error);
+    }
+    // socket.emit('audio', audioBytes);
   };
 
   const handleRoomIdChange = id => {
