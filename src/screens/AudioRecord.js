@@ -28,7 +28,9 @@ import LiveAudioStream from 'react-native-live-audio-stream';
 import AudioRecord1 from 'react-native-audio-record';
 import {FileSystem, Dirs, ExternalDir} from 'react-native-file-access';
 
-const ENDPOINT = 'https://15dc8e27ac767cecc064a65fe5ec9e7d.serveo.net';
+import Voice from '@react-native-voice/voice';
+
+const ENDPOINT = 'https://d9f5fe568dd678c96e21afa36ed75e54.serveo.net';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../components/CustomButton';
@@ -72,6 +74,7 @@ const AudioRecord = ({navigation}) => {
       if (recording) {
         stopRecording();
         setDuration(0); // Reset duration when recording completes
+        // setTranscriptions(null);
       }
     };
   }, []);
@@ -158,6 +161,35 @@ const AudioRecord = ({navigation}) => {
   //   socket.emit('start-live', true);
   // }, []);
 
+  const speechStartHandler = () => {
+    console.log('speech start handler', isRecording);
+  };
+  const speechEndHandler = async () => {
+    // setIsRecording(false);
+    console.log('speech end handler', isRecording);
+    if (isRecording) {
+      await Voice.start('en-US');
+    }
+  };
+  const speechResultsHandler = e => {
+    console.log(e.value[0]);
+    setTranscriptions({text: e.value[0]});
+  };
+  const speechErrorHandler = e => {
+    console.log('error: ', e);
+  };
+
+  useEffect(() => {
+    Voice.onSpeechStart = speechStartHandler;
+    Voice.onSpeechEnd = speechEndHandler;
+    Voice.onSpeechResults = speechResultsHandler;
+    Voice.onSpeechError = speechErrorHandler;
+
+    return () => {
+      Voice.destroy();
+    };
+  }, []);
+
   const startRecording = async () => {
     // const audioRecorderPlayer = new AudioRecorderPlayer();
     // try {
@@ -214,7 +246,7 @@ const AudioRecord = ({navigation}) => {
       wavFile: 'test.wav', // default 'audio.wav'
     };
 
-    AudioRecord1.init(options);
+    // AudioRecord1.init(options);
 
     // const socket1 = new WebSocket(
     //   'wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=805b5bb5a16547909b5f1ee127e9fa4a',
@@ -247,15 +279,31 @@ const AudioRecord = ({navigation}) => {
 
     // LiveAudioStream.start();
 
-    AudioRecord1.start();
+    // AudioRecord1.start();
 
-    AudioRecord1.on('data', data => {
-      // base64-encoded audio data chunks
-      console.log('data: ', data);
+    // AudioRecord1.on('data', data => {
+    //   // base64-encoded audio data chunks
+    //   console.log('data: ', data);
+    // });
+    // setIsRecording(true);
+
+    try {
+      await Voice.start('en-US');
+      setIsRecording(true);
+    } catch (e) {
+      console.log(e);
+    }
+
+    Voice.onSpeechRecognized(e => {
+      console.log(e);
+    });
+
+    Voice.onSpeechResults(e => {
+      console.log(e);
     });
 
     setRecording(AudioRecord1);
-    setIsRecording(true);
+    // setIsRecording(true);
     setDuration(0);
   };
 
@@ -308,22 +356,24 @@ const AudioRecord = ({navigation}) => {
     // socket.emit('disconnect-live', true);
     // LiveAudioStream.stop();
 
-    const audioFile = await AudioRecord1.stop();
-    console.log('audioFile: ', audioFile, Dirs.CacheDir);
+    // const audioFile = await AudioRecord1.stop();
+    // console.log('audioFile: ', audioFile, Dirs.CacheDir);
 
-    const audioFilePath = await FileSystem.readFile(
-      Dirs.CacheDir + '/test.wav',
-    );
+    // const audioFilePath = await FileSystem.readFile(
+    //   Dirs.CacheDir + '/test.wav',
+    // );
 
-    console.log('audioFilePath: ', audioFilePath, Dirs);
+    // console.log('audioFilePath: ', audioFilePath, Dirs);
 
-    try {
-      const fileContent = await FileSystem.readFile(audioFilePath, 'utf8');
-      console.log('Audio file content:', fileContent);
-      // Process the file content as needed
-    } catch (error) {
-      console.error('Error reading audio file:', error);
-    }
+    // try {
+    //   const fileContent = await FileSystem.readFile(audioFilePath, 'utf8');
+    //   console.log('Audio file content:', fileContent);
+    //   // Process the file content as needed
+    // } catch (error) {
+    //   console.error('Error reading audio file:', error);
+    // }
+    await Voice.stop();
+    // setIsRecording(false);
     // socket.emit('audio', audioBytes);
   };
 

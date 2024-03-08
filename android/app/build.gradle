@@ -55,7 +55,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -84,6 +84,12 @@ android {
         versionName "1.0"
     }
     signingConfigs {
+        release {
+            storeFile file('release.keystore')
+            storePassword 'Meetx123#'
+            keyAlias 'androidreleasekey'
+            keyPassword 'Meetx123#'
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
