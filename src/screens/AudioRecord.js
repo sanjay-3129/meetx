@@ -30,7 +30,7 @@ import {FileSystem, Dirs, ExternalDir} from 'react-native-file-access';
 
 import Voice from '@react-native-voice/voice';
 
-const ENDPOINT = 'https://d9f5fe568dd678c96e21afa36ed75e54.serveo.net';
+const ENDPOINT = 'https://meetx.nwf.nityom.com';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../components/CustomButton';
