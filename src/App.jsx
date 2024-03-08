@@ -26,6 +26,7 @@ const App = () => {
 
     getPermission();
   }, []);
+
   return (
     <GestureHandlerRootView style={{flex: 1, backgroundColor: '#fff'}}>
       <NavigationContainer>

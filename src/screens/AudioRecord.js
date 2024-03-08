@@ -3,18 +3,19 @@ import React, {useState, useEffect} from 'react';
 import {
   Alert,
   Button,
-  PermissionsAndroid,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  PermissionsAndroid,
   View,
 } from 'react-native';
 import {Buffer} from 'buffer';
 import socketIOClient from 'socket.io-client';
 import {TranscriptionBox} from '../components/TranscriptionBox';
+// import PermissionsAndroid from 'react-native-permissions';
 
 import AudioRecorderPlayer, {
   AudioEncoderAndroidType,
@@ -26,14 +27,21 @@ import AudioRecorderPlayer, {
 
 import LiveAudioStream from 'react-native-live-audio-stream';
 import AudioRecord1 from 'react-native-audio-record';
-import {FileSystem, Dirs, ExternalDir} from 'react-native-file-access';
+import {FileSystem, Dirs} from 'react-native-file-access';
 
 import Voice from '@react-native-voice/voice';
 
 const ENDPOINT = 'https://meetx.nwf.nityom.com';
+// const ENDPOINT = 'https://af7565b2b2d12f45dbffa5629d0d013a.serveo.net';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CustomButton from '../components/CustomButton';
+
+const socket = socketIOClient(ENDPOINT, {
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: Infinity,
+});
 
 const AudioRecord = ({navigation}) => {
   const [recording, setRecording] = useState(null);
@@ -47,12 +55,6 @@ const AudioRecord = ({navigation}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
-
-  const socket = socketIOClient(ENDPOINT, {
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionAttempts: Infinity,
-  });
 
   useEffect(() => {
     let interval;
@@ -71,6 +73,7 @@ const AudioRecord = ({navigation}) => {
 
   useEffect(() => {
     return () => {
+      socket.disconnect();
       if (recording) {
         stopRecording();
         setDuration(0); // Reset duration when recording completes
@@ -92,7 +95,7 @@ const AudioRecord = ({navigation}) => {
   useEffect(() => {
     socket.on('connect', () => {
       setSocketConnected(true);
-      console.log(socketConnected);
+      console.log('socketCOnnected: ', socketConnected, socket.id);
     });
 
     // Handle transcription updates
@@ -117,8 +120,8 @@ const AudioRecord = ({navigation}) => {
         console.log('yes');
         try {
           const grants = await PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            // PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            // PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
           ]);
 
@@ -161,34 +164,34 @@ const AudioRecord = ({navigation}) => {
   //   socket.emit('start-live', true);
   // }, []);
 
-  const speechStartHandler = () => {
-    console.log('speech start handler', isRecording);
-  };
-  const speechEndHandler = async () => {
-    // setIsRecording(false);
-    console.log('speech end handler', isRecording);
-    if (isRecording) {
-      await Voice.start('en-US');
-    }
-  };
-  const speechResultsHandler = e => {
-    console.log(e.value[0]);
-    setTranscriptions({text: e.value[0]});
-  };
-  const speechErrorHandler = e => {
-    console.log('error: ', e);
-  };
+  // const speechStartHandler = () => {
+  //   console.log('speech start handler', isRecording);
+  // };
+  // const speechEndHandler = async () => {
+  //   // setIsRecording(false);
+  //   console.log('speech end handler', isRecording);
+  //   if (isRecording) {
+  //     await Voice.start('en-US');
+  //   }
+  // };
+  // const speechResultsHandler = e => {
+  //   console.log(e.value[0]);
+  //   setTranscriptions({text: e.value[0]});
+  // };
+  // const speechErrorHandler = e => {
+  //   console.log('error: ', e);
+  // };
 
-  useEffect(() => {
-    Voice.onSpeechStart = speechStartHandler;
-    Voice.onSpeechEnd = speechEndHandler;
-    Voice.onSpeechResults = speechResultsHandler;
-    Voice.onSpeechError = speechErrorHandler;
+  // useEffect(() => {
+  //   Voice.onSpeechStart = speechStartHandler;
+  //   Voice.onSpeechEnd = speechEndHandler;
+  //   Voice.onSpeechResults = speechResultsHandler;
+  //   Voice.onSpeechError = speechErrorHandler;
 
-    return () => {
-      Voice.destroy();
-    };
-  }, []);
+  //   return () => {
+  //     Voice.destroy();
+  //   };
+  // }, []);
 
   const startRecording = async () => {
     // const audioRecorderPlayer = new AudioRecorderPlayer();
@@ -246,7 +249,7 @@ const AudioRecord = ({navigation}) => {
       wavFile: 'test.wav', // default 'audio.wav'
     };
 
-    // AudioRecord1.init(options);
+    AudioRecord1.init(options);
 
     // const socket1 = new WebSocket(
     //   'wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token=805b5bb5a16547909b5f1ee127e9fa4a',
@@ -279,28 +282,28 @@ const AudioRecord = ({navigation}) => {
 
     // LiveAudioStream.start();
 
-    // AudioRecord1.start();
+    AudioRecord1.start();
 
-    // AudioRecord1.on('data', data => {
-    //   // base64-encoded audio data chunks
-    //   console.log('data: ', data);
+    AudioRecord1.on('data', data => {
+      // base64-encoded audio data chunks
+      console.log('data: ', data);
+    });
+    setIsRecording(true);
+
+    // try {
+    //   await Voice.start('en-US');
+    //   setIsRecording(true);
+    // } catch (e) {
+    //   console.log(e);
+    // }
+
+    // Voice.onSpeechRecognized(e => {
+    //   console.log(e);
     // });
-    // setIsRecording(true);
 
-    try {
-      await Voice.start('en-US');
-      setIsRecording(true);
-    } catch (e) {
-      console.log(e);
-    }
-
-    Voice.onSpeechRecognized(e => {
-      console.log(e);
-    });
-
-    Voice.onSpeechResults(e => {
-      console.log(e);
-    });
+    // Voice.onSpeechResults(e => {
+    //   console.log(e);
+    // });
 
     setRecording(AudioRecord1);
     // setIsRecording(true);
@@ -356,23 +359,27 @@ const AudioRecord = ({navigation}) => {
     // socket.emit('disconnect-live', true);
     // LiveAudioStream.stop();
 
-    // const audioFile = await AudioRecord1.stop();
-    // console.log('audioFile: ', audioFile, Dirs.CacheDir);
+    const audioFilePath = await AudioRecord1.stop();
+    console.log('audioFile: ', audioFilePath, Dirs.DocumentDir);
 
-    // const audioFilePath = await FileSystem.readFile(
-    //   Dirs.CacheDir + '/test.wav',
+    // const audioFileBlob = await FileSystem.readFile(
+    //   Dirs.DocumentDir + '/test.wav',
     // );
 
-    // console.log('audioFilePath: ', audioFilePath, Dirs);
+    try {
+      console.log('inside read file');
+      const fileContent = await FileSystem.readFile(
+        Dirs.DocumentDir + '/test.wav',
+        'base64',
+      );
+      console.log('Audio file content');
+      socket.emit('audio', fileContent);
+      // Process the file content as needed
+    } catch (error) {
+      console.error('Error reading audio file:', error);
+    }
 
-    // try {
-    //   const fileContent = await FileSystem.readFile(audioFilePath, 'utf8');
-    //   console.log('Audio file content:', fileContent);
-    //   // Process the file content as needed
-    // } catch (error) {
-    //   console.error('Error reading audio file:', error);
-    // }
-    await Voice.stop();
+    // await Voice.stop(); // voice recognization
     // setIsRecording(false);
     // socket.emit('audio', audioBytes);
   };

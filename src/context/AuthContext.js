@@ -25,6 +25,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({children}) => {
   //   const url = "http://10.5.50.101:3000";
   const url = 'https://meetx.nwf.nityom.com';
+  // const url = 'https://af7565b2b2d12f45dbffa5629d0d013a.serveo.net';
   const navigation = useNavigation();
   const [userToken, setUserToken] = useState(null);
   const [loading, setLoading] = useState(false);
